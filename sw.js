@@ -1,8 +1,10 @@
 /* Konseq Service Worker — macht die App offline-fähig und installierbar. */
-const CACHE = "konseq-v12";
+const CACHE = "konseq-v13";
 const CORE = [
   "./",
   "./index.html",
+  "./styles.css",
+  "./app.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
