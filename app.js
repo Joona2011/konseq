@@ -171,14 +171,20 @@ function defaultGrid(){return [
   {id:uid(),type:"goals",w:2,h:2},{id:uid(),type:"appts",w:2,h:1},{id:uid(),type:"calendar",w:2,h:1}];}
 
 /* ---- State ---- */
-const KEY="konseq:v1",LEGACY_KEY="kadence:v2";
+const KEY="konseq:v1",LEGACY_KEY="kadence:v2",RECOVERY_KEY="konseq:recovery";
 let S=load();
-function load(){try{const raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY);
+function load(){let raw=null;
+  try{raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY);
     if(raw){const st=JSON.parse(raw);const before=st&&st.lastDate;const out=migrate(rollover(st));
       // Nach einem Tageswechsel sofort sichern (Score-Verlauf + Tagesplan), nicht erst bei der
       // nächsten Aktion. Nur auf diesem Erfolgsweg — ein Lesefehler überschreibt nie Daten.
       if(st&&typeof st==="object"&&out===st&&out.lastDate!==before){try{localStorage.setItem(KEY,JSON.stringify(out));}catch(e){}}
-      return out;}}catch(e){}return seed();}
+      return out;}}
+  catch(e){
+    // Gespeicherte Daten nicht lesbar: Rohdaten aufbewahren, bevor die App neu startet.
+    // Sonst würde der nächste save() sie unwiderruflich mit dem leeren Stand überschreiben.
+    if(raw){try{if(!localStorage.getItem(RECOVERY_KEY))localStorage.setItem(RECOVERY_KEY,raw);}catch(e2){}}}
+  return seed();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function migrate(st){if(!st||typeof st!=="object")return seed();
   st.routines=Array.isArray(st.routines)?st.routines:[];
@@ -189,8 +195,30 @@ function migrate(st){if(!st||typeof st!=="object")return seed();
   if(!Array.isArray(st.grid)||!st.grid.length)st.grid=defaultGrid();if(!st.theme)st.theme="system";if(!st.postpones)st.postpones={};
   if(!st.log||typeof st.log!=="object")st.log={};
   if(!st.lang)st.lang=detectLang();if(st.setupDone===undefined)st.setupDone=true;if(!st.lastDate)st.lastDate=todayStr();return st;}
+/* Einzelne kaputte Einträge (z. B. aus einer beschädigten Sicherungsdatei) entfernen,
+   statt den ganzen Stand zu verwerfen. Läuft vor jedem Tageswechsel, also beim Laden
+   und beim Import. Gültige Einträge bleiben unverändert. */
+function sanitize(st){
+  if(!st||typeof st!=="object")return st;
+  const isObj=x=>x&&typeof x==="object"&&!Array.isArray(x);
+  const hasId=x=>isObj(x)&&(typeof x.id==="string"||typeof x.id==="number")&&x.id!=="";
+  const isDate=v=>typeof v==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(v);
+  // Einträge ohne ID behalten und neu nummerieren; nur Nicht-Objekte fallen weg
+  const list=(a,ok,fix)=>Array.isArray(a)?a.filter(ok).map(x=>{x.id=hasId(x)?String(x.id):uid();fix(x);return x;}):[];
+  st.routines=list(st.routines,isObj,x=>{x.name=String(x.name==null?"":x.name);x.done=!!x.done;});
+  st.tasks=list(st.tasks,x=>isObj(x)&&isDate(x.due),x=>{x.name=String(x.name==null?"":x.name);x.done=!!x.done;});
+  st.goals=list(st.goals,isObj,x=>{x.name=String(x.name==null?"":x.name);x.target=Math.max(0,parseInt(x.target,10)||0);x.count=Math.max(0,parseInt(x.count,10)||0);x.repeat=!!x.repeat;});
+  st.appointments=list(st.appointments,x=>isObj(x)&&isDate(x.date),x=>{x.title=String(x.title==null?"":x.title);
+    x.from=typeof x.from==="string"&&/^\d{2}:\d{2}$/.test(x.from)?x.from:"";x.to=typeof x.to==="string"&&/^\d{2}:\d{2}$/.test(x.to)?x.to:"";x.yearly=!!x.yearly;});
+  if(Array.isArray(st.grid))st.grid=st.grid.filter(e=>isObj(e)&&COMP[e.type]).map(e=>({id:String(e.id||uid()),type:e.type,w:e.w===2?2:1,h:[1,2,3].includes(e.h)?e.h:2}));
+  ["history","log","postpones"].forEach(k=>{if(!isObj(st[k]))st[k]={};});
+  Object.keys(st.history).forEach(k=>{if(!isDate(k)||!isObj(st.history[k]))delete st.history[k];});
+  Object.keys(st.log).forEach(k=>{if(!isDate(k)||!isObj(st.log[k]))delete st.log[k];});
+  if(st.lastDate!==undefined&&!isDate(st.lastDate))delete st.lastDate;
+  return st;}
 function rollover(st){
   if(!st||typeof st!=="object")return st;
+  sanitize(st);
   st.routines=st.routines||[];st.tasks=st.tasks||[];st.goals=st.goals||[];st.history=st.history||{};
   const t=todayStr();if(st.lastDate===t)return st;
   if(st.lastDate){st.history=st.history||{};
