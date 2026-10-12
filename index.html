@@ -454,6 +454,8 @@ const EN={
 "Datei nicht lesbar":"File can't be read","Keine gültige Konseq-Sicherung":"Not a valid Konseq backup",
 "Sicherung aus neuerer Version — bitte App aktualisieren":"Backup from a newer version — please update the app",
 "Import fehlgeschlagen":"Import failed","Sicherung geladen":"Backup restored",
+"Füge einen Link oder Code ein — oder wähle eine .ics-Datei aus Google oder Apple Kalender.":"Paste a link or code — or choose an .ics file from Google or Apple Calendar.",
+"Datei wählen (.ics)":"Choose a file (.ics)","Keine Termine in der Datei":"No appointments in the file","(ohne Titel)":"(no title)",
 "Dunkel":"Dark","Dunkler Modus":"Dark mode","Einmalige To-dos":"One-time to-dos","Erledigt ✓":"Done ✓",
 "Fertig":"Done","Fokus":"Focus","Folgt dem System":"Following system",
 "Fortschritt statt Alles-oder-Nichts":"Progress, not all-or-nothing","Fortschritt über die Woche":"Progress across the week",
@@ -1090,6 +1092,7 @@ function bindSheet(scrim){
   const recg=scrim.querySelector("[data-recgo]");if(recg)recg.addEventListener("click",()=>{
     const inp=scrim.querySelector("#rec-in");const d=inp?decodePayload(inp.value):null;
     if(!d||!d.length){toast("Kein gültiger Code/Link");return;}openImportConfirm(d);});
+  const rf=scrim.querySelector("[data-receivefile]");if(rf)rf.addEventListener("click",()=>pickICSFile());
   const rg=scrim.querySelector("[data-resetgo]");if(rg)rg.addEventListener("click",()=>{resetTestData();closeSheet();route="home";render();openProfilePicker(true);});
   const impg=scrim.querySelector("[data-importgo]");if(impg)impg.addEventListener("click",()=>{doImport(pendingImport);closeSheet();});
   scrim.querySelectorAll("[data-backup]").forEach(el=>el.addEventListener("click",()=>{const a=el.dataset.backup;if(a==="export")exportBackup();else if(a==="import")pickBackupFile();}));
@@ -1418,9 +1421,10 @@ function resetTestData(){if(!PREVIEW_BUILD)return;
   S=seed();Object.assign(S,keep);S.setupDone=false;save();}
 function openReceive(){
   openSheet(`<div class="popcard" data-stop><h3>Termine empfangen</h3>
-    <p style="font-size:13px;color:var(--ink-2);text-align:center;margin:-6px 0 14px">Füge den erhaltenen Link oder Code ein.</p>
+    <p style="font-size:13px;color:var(--ink-2);text-align:center;margin:-6px 0 14px">Füge einen Link oder Code ein — oder wähle eine .ics-Datei aus Google oder Apple Kalender.</p>
     <div class="field"><input type="text" id="rec-in" placeholder="Link oder Code einfügen"/></div>
-    <div class="pop-actions"><button class="btn-ghost" data-menu="close">Abbrechen</button><button class="btn-primary" data-recgo>Importieren</button></div></div>`,true);
+    <div class="pop-actions"><button class="btn-ghost" data-menu="close">Abbrechen</button><button class="btn-primary" data-recgo>Importieren</button></div>
+    <button class="btn-ghost" data-receivefile style="width:100%;margin-top:8px">Datei wählen (.ics)</button></div>`,true);
 }
 function openImportConfirm(list){
   pendingImport=list;
@@ -1458,6 +1462,44 @@ function buildICS(appts){const dt=(d,t)=>d.replace(/-/g,"")+(t?"T"+t.replace(":"
     if(a.yearly)out.push("RRULE:FREQ=YEARLY");
     out.push("SUMMARY:"+icsEsc(a.title),"END:VEVENT");});
   out.push("END:VCALENDAR");return out.join("\r\n");}
+
+/* ---- .ics importieren ----
+   Liest echte Dateien aus Google-/Apple-Kalender: entfaltet gefaltete Zeilen,
+   ignoriert VALARM/VTIMEZONE, versteht all-day (VALUE=DATE), UTC (…Z) und
+   TZID/floating (Wanduhrzeit), sowie jaehrliche Wiederholung (RRULE FREQ=YEARLY).
+   Andere Wiederholungen werden als einmaliger Termin uebernommen. */
+function icsUnescape(s){return String(s).replace(/\\n/gi," ").replace(/\\,/g,",").replace(/\\;/g,";").replace(/\\\\/g,"\\");}
+function icsUnfold(text){const raw=String(text).replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");const lines=[];
+  for(const ln of raw){if(lines.length&&/^[ \t]/.test(ln))lines[lines.length-1]+=ln.slice(1);else lines.push(ln);}return lines;}
+function icsSplit(line){let q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"')q=!q;else if(c===":"&&!q)return [line.slice(0,i),line.slice(i+1)];}return [line,""];}
+function icsDateParts(val){const v=String(val).trim();
+  const m=v.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/);if(!m)return null;
+  const y=m[1],mo=m[2],da=m[3],hh=m[4],mi=m[5],se=m[6],z=m[7];
+  if(hh===undefined)return {date:`${y}-${mo}-${da}`,hhmm:null};
+  if(z){const d=new Date(Date.UTC(+y,+mo-1,+da,+hh,+mi,+(se||0)));if(isNaN(d.getTime()))return null;
+    return {date:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,hhmm:`${pad(d.getHours())}:${pad(d.getMinutes())}`};}
+  return {date:`${y}-${mo}-${da}`,hhmm:`${hh}:${mi}`};}
+function parseICS(text){const lines=icsUnfold(text);const stack=[];const out=[];let cur=null;
+  for(const line of lines){if(!line)continue;const parts=icsSplit(line);const value=parts[1];
+    const name=parts[0].split(";")[0].trim().toUpperCase();
+    if(name==="BEGIN"){const comp=value.trim().toUpperCase();stack.push(comp);if(comp==="VEVENT")cur={title:"",date:"",from:"",to:"",yearly:false,_end:null};continue;}
+    if(name==="END"){const comp=value.trim().toUpperCase();
+      if(comp==="VEVENT"&&cur){if(cur.date){if(cur._end&&cur._end.hhmm&&cur._end.date===cur.date&&cur._end.hhmm!==cur.from)cur.to=cur._end.hhmm;delete cur._end;if(!cur.title)cur.title="(ohne Titel)";out.push(cur);}cur=null;}
+      stack.pop();continue;}
+    if(stack[stack.length-1]!=="VEVENT"||!cur)continue;
+    if(name==="SUMMARY")cur.title=icsUnescape(value).trim();
+    else if(name==="DTSTART"){const p=icsDateParts(value);if(p){cur.date=p.date;cur.from=p.hhmm||"";}}
+    else if(name==="DTEND"){const p=icsDateParts(value);if(p)cur._end=p;}
+    else if(name==="RRULE"){if(/(^|;)FREQ=YEARLY(;|$)/i.test(value.trim()))cur.yearly=true;}}
+  const seen=new Set(),uniq=[];for(const a of out){const k=a.title+"|"+a.date+"|"+a.from;if(!seen.has(k)){seen.add(k);uniq.push(a);}}return uniq;}
+function pickICSFile(){const inp=document.createElement("input");inp.type="file";inp.accept=".ics,text/calendar";
+  inp.style.position="fixed";inp.style.left="-9999px";document.body.appendChild(inp);
+  inp.addEventListener("change",()=>{const f=inp.files&&inp.files[0];inp.remove();if(!f)return;
+    const rd=new FileReader();
+    rd.onload=()=>{let list=null;try{list=parseICS(rd.result);}catch(e){list=null;}
+      if(!list||!list.length){toast("Keine Termine in der Datei");return;}openImportConfirm(list);};
+    rd.onerror=()=>toast("Datei nicht lesbar");rd.readAsText(f);});
+  inp.click();}
 
 /* ---- QR (lazy von cdnjs) ---- */
 const _scripts={};

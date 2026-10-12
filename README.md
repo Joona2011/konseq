@@ -32,4 +32,9 @@ alle Daten 1:1 auf einem anderen Gerät wieder her. Zusätzlich hält die App ab
 jetzt pro Tag fest, welche Routine/Aufgabe erledigt und wie viel an Wochenzielen
 geschafft wurde (`S.log`) — Grundlage für die Monatsanalyse in Phase 8.
 
+Sitzung 2 erledigt: Import einer `.ics`-Datei aus Google- oder Apple-Kalender
+über „Termine empfangen" → „Datei wählen (.ics)". Versteht ganztägige und
+jährliche Termine, rechnet UTC-Zeiten in die lokale Zeit um und legt keine
+Dubletten an.
+
 Daten liegen weiterhin lokal im Browser; Konten und echter Sync folgen in Phase 2.
