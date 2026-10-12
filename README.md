@@ -26,5 +26,10 @@ Läuft als installierbare Web-App (PWA) auf Android und am Laptop.
 
 ## Status
 
-Prototyp vor Fahrplan-Sitzung 1. Daten liegen lokal im Browser,
-Konten und Sync folgen in Phase 2.
+Phase 1, Sitzung 1 erledigt: vollständige Datensicherung (Export/Import als
+versionierte `.json`-Datei, erreichbar im Menü unter „Datensicherung") stellt
+alle Daten 1:1 auf einem anderen Gerät wieder her. Zusätzlich hält die App ab
+jetzt pro Tag fest, welche Routine/Aufgabe erledigt und wie viel an Wochenzielen
+geschafft wurde (`S.log`) — Grundlage für die Monatsanalyse in Phase 8.
+
+Daten liegen weiterhin lokal im Browser; Konten und echter Sync folgen in Phase 2.

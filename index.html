@@ -445,6 +445,15 @@ const EN={
 "Code empfangen":"Receive code","Code oder Link einfügen":"Paste a code or link",
 "Darstellung":"Appearance","Datei erstellt":"File created","Datum":"Date","Dein Konseq-Score":"Your Konseq score",
 "Download blockiert — nutze Teilen/Kopieren":"Download blocked — use share or copy",
+"Datensicherung":"Backup & restore","Export & Import als Datei":"Export & import as a file",
+"Alle Daten als Datei sichern oder eine Sicherung von einem anderen Gerät laden.":"Back up all data to a file, or restore a backup from another device.",
+"Daten exportieren":"Export data","Als Datei auf diesem Gerät speichern":"Save to a file on this device",
+"Daten importieren":"Import data","Sicherungsdatei von diesem Gerät wählen":"Choose a backup file from this device",
+"Sicherung laden?":"Restore backup?","Wochenziele":"Weekly goals",
+"Alle aktuellen Daten werden durch die Sicherung ersetzt. Das lässt sich nicht rückgängig machen.":"All current data will be replaced by the backup. This cannot be undone.",
+"Datei nicht lesbar":"File can't be read","Keine gültige Konseq-Sicherung":"Not a valid Konseq backup",
+"Sicherung aus neuerer Version — bitte App aktualisieren":"Backup from a newer version — please update the app",
+"Import fehlgeschlagen":"Import failed","Sicherung geladen":"Backup restored",
 "Dunkel":"Dark","Dunkler Modus":"Dark mode","Einmalige To-dos":"One-time to-dos","Erledigt ✓":"Done ✓",
 "Fertig":"Done","Fokus":"Focus","Folgt dem System":"Following system",
 "Fortschritt statt Alles-oder-Nichts":"Progress, not all-or-nothing","Fortschritt über die Woche":"Progress across the week",
@@ -554,8 +563,18 @@ const KEY="konseq:v1",LEGACY_KEY="kadence:v2";
 let S=load();
 function load(){try{const raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY);if(raw)return migrate(rollover(JSON.parse(raw)));}catch(e){}return seed();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-function migrate(st){if(!Array.isArray(st.grid)||!st.grid.length)st.grid=defaultGrid();if(!st.theme)st.theme="system";if(!st.postpones)st.postpones={};if(!st.lang)st.lang=detectLang();if(st.setupDone===undefined)st.setupDone=true;return st;}
+function migrate(st){if(!st||typeof st!=="object")return seed();
+  st.routines=Array.isArray(st.routines)?st.routines:[];
+  st.tasks=Array.isArray(st.tasks)?st.tasks:[];
+  st.goals=Array.isArray(st.goals)?st.goals:[];
+  st.appointments=Array.isArray(st.appointments)?st.appointments:[];
+  st.history=(st.history&&typeof st.history==="object")?st.history:{};
+  if(!Array.isArray(st.grid)||!st.grid.length)st.grid=defaultGrid();if(!st.theme)st.theme="system";if(!st.postpones)st.postpones={};
+  if(!st.log||typeof st.log!=="object")st.log={};
+  if(!st.lang)st.lang=detectLang();if(st.setupDone===undefined)st.setupDone=true;if(!st.lastDate)st.lastDate=todayStr();return st;}
 function rollover(st){
+  if(!st||typeof st!=="object")return st;
+  st.routines=st.routines||[];st.tasks=st.tasks||[];st.goals=st.goals||[];st.history=st.history||{};
   const t=todayStr();if(st.lastDate===t)return st;
   if(st.lastDate){st.history=st.history||{};
     if(!st.history[st.lastDate]){
@@ -567,6 +586,20 @@ function rollover(st){
   if(st.lastDate){const wk=ds=>{const x=new Date(ds+"T00:00:00");return dstr(addDays(x,-(weekdayMon(x)-1)));};
     if(wk(st.lastDate)!==wk(t)){st.goals=(st.goals||[]).filter(g=>g.repeat);st.goals.forEach(g=>g.count=0);}}
   st.lastDate=t;return st;}
+
+/* ---- Tageslog ----
+   Hält ab Sitzung 1 pro Tag fest, welche Routine/Aufgabe erledigt und wie viel
+   an Wochenzielen geschafft wurde. Schlüssel ist das Datum; vergangene Tage
+   bleiben eingefroren. Grundlage für die Monatsanalyse (Phase 8).
+   Namen werden mitgespeichert, damit die Analyse auch nach Umbenennen oder
+   Löschen eines Eintrags aussagekräftig bleibt. */
+function dayLog(){const d=todayStr();S.log=S.log||{};return (S.log[d]=S.log[d]||{r:{},t:{},g:{}});}
+function logItemDone(kind,item,on){if(!item)return;const e=dayLog();const bucket=kind==="routine"?e.r:e.t;
+  if(on)bucket[item.id]={name:item.name};else delete bucket[item.id];}
+function logGoalDelta(g,delta){if(!g||!delta)return;const e=dayLog();
+  const rec=e.g[g.id]||(e.g[g.id]={name:g.name,target:g.target,add:0});
+  rec.name=g.name;rec.target=g.target;rec.add=(rec.add||0)+delta;rec.done=g.target>0&&g.count>=g.target;
+  if(!rec.add&&!rec.done)delete e.g[g.id];}
 
 /* ---- Score ----
    Eine konsequente Woche ergibt 100: alle Routinen täglich, alle Tagesaufgaben
@@ -602,7 +635,7 @@ function computeScore(){const days=[];
 /* ---- Seed ---- */
 function seed(){const t=todayStr();const st={lastDate:t,
   routines:[],tasks:[],goals:[],appointments:[],
-  history:{},grid:defaultGrid(),theme:"system",postpones:{},tutSeen:0,lang:detectLang(),setupDone:false};
+  history:{},log:{},grid:defaultGrid(),theme:"system",postpones:{},tutSeen:0,lang:detectLang(),setupDone:false};
   return st;}
 
 /* ---- Icons ---- */
@@ -627,6 +660,7 @@ const I={
   qr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v.01M14 20v.01M20 20v.01M17 17v.01"/></svg>',
   link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1.5-1.5"/></svg>',
   download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.3-3 7.6-7 9-4-1.4-7-4.7-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>',
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>',
   inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l2-8h12l2 8M4 13v6a1 1 0 001 1h14a1 1 0 001-1v-6M4 13h5l1 2h4l1-2h5"/></svg>',
@@ -863,7 +897,8 @@ function sheetAddMenu(){const item=(act,ic,a,b)=>`<button class="menu-item" data
     ${item("share",I.share,"Termine teilen","Per Link, Datei oder QR")}
     ${item("receive",I.inbox,"Termine empfangen","Code oder Link einfügen")}
     ${item("templates",I.plus,"Vorlagen hinzufügen","Schule, Studium, Beruf, Sport …")}
-    ${item("layout",I.grid,"Layout","Startseite als Baukasten")}</div>
+    ${item("layout",I.grid,"Layout","Startseite als Baukasten")}
+    ${item("backup",I.shield,"Datensicherung","Export & Import als Datei")}</div>
     ${PREVIEW_BUILD?`<button class="menu-item" data-menu="reset" style="margin-top:4px"><span class="mi-ic" style="background:var(--warn-soft);color:var(--warn)">${I.routine}</span><span class="mi-tx"><span class="a" style="color:var(--warn)">Testdaten zurücksetzen</span><span class="b">Nur in der Vorschau · alles neu</span></span></button>`:""}</div>`;}
 function sheetScoreInfo(){if(LANG==="en")return `<div class="sheet"><div class="grip-bar"></div><h3>How your score works</h3>
   <p class="sh-sub" style="line-height:1.6;font-size:13.5px;color:var(--ink-2)">Konseq compares you with <b>nobody</b> but yourself. The number shows how much of your own standards you met over the last <b>7 days</b>.</p>
@@ -1042,6 +1077,7 @@ function bindSheet(scrim){
     if(m==="share"){shareSel=new Set();closeSheet();go("share");return;}
     if(m==="receive"){closeSheet();openReceive();return;}
     if(m==="templates"){openProfilePicker(false);return;}
+    if(m==="backup"){closeSheet();openSheet(sheetBackup());return;}
     if(m==="reset"&&PREVIEW_BUILD){openResetConfirm();return;}
     closeSheet();
     if(["routines","tasks","goals","termine","layout"].includes(m))go(m);}));
@@ -1056,6 +1092,8 @@ function bindSheet(scrim){
     if(!d||!d.length){toast("Kein gültiger Code/Link");return;}openImportConfirm(d);});
   const rg=scrim.querySelector("[data-resetgo]");if(rg)rg.addEventListener("click",()=>{resetTestData();closeSheet();route="home";render();openProfilePicker(true);});
   const impg=scrim.querySelector("[data-importgo]");if(impg)impg.addEventListener("click",()=>{doImport(pendingImport);closeSheet();});
+  scrim.querySelectorAll("[data-backup]").forEach(el=>el.addEventListener("click",()=>{const a=el.dataset.backup;if(a==="export")exportBackup();else if(a==="import")pickBackupFile();}));
+  const bkg=scrim.querySelector("[data-backupgo]");if(bkg)bkg.addEventListener("click",()=>applyBackup(pendingBackup));
   scrim.querySelectorAll("[data-day-add]").forEach(el=>el.addEventListener("click",()=>{apptDraft={title:"",date:el.dataset.dayAdd,from:"",to:"",yearly:false};openSheet(sheetNewAppt(),true);}));
   scrim.querySelectorAll("[data-del-appt]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();
     const id=el.dataset.delAppt;const a0=S.appointments.find(a=>a.id===id);S.appointments=S.appointments.filter(a=>a.id!==id);save();
@@ -1073,12 +1111,12 @@ function bindSheet(scrim){
   const wd=scrim.querySelector("[data-wheel-done]");if(wd)wd.addEventListener("click",()=>{const w=scrim.querySelector("#wheel");if(w&&w.dataset.wy){calYear=+w.dataset.wy;calMonth=+w.dataset.wm;}closeSheet();render();});
   scrim.querySelectorAll("[data-move-task]").forEach(el=>el.addEventListener("click",()=>{
     const id=el.dataset.moveTask,to=el.dataset.to;const t=S.tasks.find(x=>x.id===id);if(!t){closeSheet();return;}
-    if(to==="done"){t.done=true;toast("Erledigt ✓");}
-    else{const td=todayStr();if(t.due===td){S.postpones=S.postpones||{};S.postpones[td]=(S.postpones[td]||0)+1;}t.due=dstr(addDays(today(),1));t.done=false;toast("Auf morgen verschoben");}
+    if(to==="done"){t.done=true;logItemDone("task",t,true);toast("Erledigt ✓");}
+    else{const td=todayStr();if(t.due===td){S.postpones=S.postpones||{};S.postpones[td]=(S.postpones[td]||0)+1;}logItemDone("task",t,false);t.due=dstr(addDays(today(),1));t.done=false;toast("Auf morgen verschoben");}
     save();closeSheet();render();}));
   scrim.querySelectorAll("[data-key]").forEach(el=>el.addEventListener("click",()=>{
     const k=el.dataset.key;
-    if(k==="ok"){const g=S.goals.find(x=>x.id===padState.goalId);if(g){g.count=Math.max(0,g.count+padState.val);save();}closeSheet();softRefreshHome();return;}
+    if(k==="ok"){const g=S.goals.find(x=>x.id===padState.goalId);if(g){const before=g.count;g.count=Math.max(0,g.count+padState.val);logGoalDelta(g,g.count-before);save();}closeSheet();softRefreshHome();return;}
     if(k==="del")padState.val=Math.floor(padState.val/10);else{const nv=padState.val*10+(+k);padState.val=nv>99999?padState.val:nv;}
     const v=scrim.querySelector(".keypad-val");const sub=scrim.querySelector("#kp-sub");const g=S.goals.find(x=>x.id===padState.goalId);
     if(v)v.textContent="+"+padState.val;
@@ -1200,9 +1238,9 @@ function builderTileUp(){
 
 /* ================= State-Aktionen ================= */
 function toggleCheck(kind,id,el){const arr=kind==="routine"?S.routines:S.tasks;const it=arr.find(x=>x.id===id);if(!it)return;
-  it.done=!it.done;save();
+  it.done=!it.done;logItemDone(kind,it,it.done);save();
   if(it.done&&el){el.classList.add("done","leaving");setTimeout(()=>softRefreshHome(),320);}else softRefreshHome();}
-function bumpGoal(id,delta){const g=S.goals.find(x=>x.id===id);if(!g)return;g.count=Math.max(0,g.count+delta);save();softRefreshHome();}
+function bumpGoal(id,delta){const g=S.goals.find(x=>x.id===id);if(!g)return;const before=g.count;g.count=Math.max(0,g.count+delta);logGoalDelta(g,g.count-before);save();softRefreshHome();}
 function delItem(kind,id){
   if(kind==="routine")S.routines=S.routines.filter(x=>x.id!==id);
   else if(kind==="task")S.tasks=S.tasks.filter(x=>x.id!==id);
@@ -1306,6 +1344,7 @@ function openDaySheet(ds){
 let shareSel=new Set();     // ausgewählte Termin-IDs
 let currentICS="";          // zuletzt erzeugte .ics-Daten (für Teilen/Download)
 let pendingImport=null;     // Termine, die auf Bestätigung warten
+let pendingBackup=null;     // Voll-Sicherung, die auf Bestätigung wartet
 
 function viewShare(){
   const appts=[...S.appointments].sort((a,b)=>(a.date+(a.from||"")).localeCompare(b.date+(b.from||"")));
@@ -1440,6 +1479,54 @@ function downloadFile(text,name,type){try{const blob=new Blob([text],{type});con
     const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();
     setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},600);toast("Datei erstellt");}
   catch(e){toast("Download blockiert — nutze Teilen/Kopieren");}}
+
+/* ================= Datensicherung (Voll-Export/Import) =================
+   Sichert den kompletten App-Zustand als Datei und stellt ihn auf einem
+   anderen Gerät 1:1 wieder her. Die Datei trägt eine Formatversion, damit
+   sie auch nach späteren Umbauten des Datenmodells lesbar bleibt: ältere
+   Sicherungen laufen beim Import durch migrate()/rollover(). */
+const BACKUP_FORMAT="konseq-backup",BACKUP_VERSION=1;
+function exportBackup(){
+  const payload={format:BACKUP_FORMAT,version:BACKUP_VERSION,exportedAt:new Date().toISOString(),app:"Konseq",data:S};
+  downloadFile(JSON.stringify(payload,null,2),"konseq-sicherung-"+todayStr()+".json","application/json");
+}
+function pickBackupFile(){
+  const inp=document.createElement("input");inp.type="file";inp.accept="application/json,.json";
+  inp.style.position="fixed";inp.style.left="-9999px";document.body.appendChild(inp);
+  inp.addEventListener("change",()=>{const f=inp.files&&inp.files[0];inp.remove();if(!f)return;
+    const rd=new FileReader();
+    rd.onload=()=>{let obj=null;try{obj=JSON.parse(rd.result);}catch(e){toast("Datei nicht lesbar");return;}confirmBackupImport(obj);};
+    rd.onerror=()=>toast("Datei nicht lesbar");
+    rd.readAsText(f);});
+  inp.click();
+}
+function confirmBackupImport(obj){
+  if(!obj||obj.format!==BACKUP_FORMAT||typeof obj.data!=="object"||!obj.data){toast("Keine gültige Konseq-Sicherung");return;}
+  if(typeof obj.version==="number"&&obj.version>BACKUP_VERSION){toast("Sicherung aus neuerer Version — bitte App aktualisieren");return;}
+  pendingBackup=obj.data;
+  const d=obj.data,n=a=>Array.isArray(a)?a.length:0;
+  let when="";try{if(obj.exportedAt){const dt=new Date(obj.exportedAt);if(!isNaN(dt))when=fmtDM(dt)+" "+pad(dt.getHours())+":"+pad(dt.getMinutes());}}catch(e){}
+  const count=(lbl,v)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1"><span style="font-size:11.5px;color:var(--ink-3)">${lbl}</span><b style="font-size:16px;color:var(--ink)">${v}</b></div>`;
+  openSheet(`<div class="popcard" data-stop><h3>Sicherung laden?</h3>
+    ${when?`<p style="font-size:12.5px;color:var(--ink-3);text-align:center;margin:-6px 0 10px">${esc(when)}</p>`:""}
+    <div style="display:flex;justify-content:space-between;gap:8px;margin:4px 2px 0">${count("Routinen",n(d.routines))}${count("Aufgaben",n(d.tasks))}${count("Wochenziele",n(d.goals))}${count("Termine",n(d.appointments))}</div>
+    <p style="font-size:13px;color:var(--ink-2);text-align:center;line-height:1.55;margin:12px 0 2px">Alle aktuellen Daten werden durch die Sicherung ersetzt. Das lässt sich nicht rückgängig machen.</p>
+    <div class="pop-actions"><button class="btn-ghost" data-menu="close">Abbrechen</button><button class="btn-primary" data-backupgo>Importieren</button></div></div>`,true);
+}
+function applyBackup(data){
+  if(!data)return;
+  try{S=migrate(rollover(data));}catch(e){toast("Import fehlgeschlagen");return;}
+  save();pendingBackup=null;closeSheet();
+  try{setLang(S.lang||detectLang());}catch(e){}
+  try{applyTheme(S.theme||"system");}catch(e){}
+  route="home";render();toast("Sicherung geladen");
+}
+function sheetBackup(){const row=(act,ic,a,b)=>`<button class="menu-item" data-backup="${act}"><span class="mi-ic">${ic}</span><span class="mi-tx"><span class="a">${a}</span><span class="b">${b}</span></span><span class="chev">${I.chevR}</span></button>`;
+  return `<div class="sheet"><div class="grip-bar"></div><h3>Datensicherung</h3>
+    <p class="sh-sub">Alle Daten als Datei sichern oder eine Sicherung von einem anderen Gerät laden.</p>
+    <div class="menu-list">
+    ${row("export",I.download,"Daten exportieren","Als Datei auf diesem Gerät speichern")}
+    ${row("import",I.shield,"Daten importieren","Sicherungsdatei von diesem Gerät wählen")}</div></div>`;}
 
 /* ================= Theme ================= */
 function applyTheme(t){const r=document.documentElement;
