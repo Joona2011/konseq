@@ -4,25 +4,44 @@ Dieses Paket macht aus Konseq eine **installierbare App (PWA)** — mit eigenem
 Icon, Vollbild und Offline-Betrieb, auf **Android-Handy und Laptop**.
 
 ## Was ist drin
-- `index.html` – die App (mit Manifest + Service-Worker eingebunden)
+- `index.html` – Gerüst, lädt `styles.css` und `app.js`
+- `styles.css` – das Aussehen · `app.js` – die Logik
 - `manifest.webmanifest` – App-Name, Icon, Vollbild-Einstellungen
-- `sw.js` – Service-Worker: macht die App offline-fähig
+- `sw.js` – Service-Worker: Offline-Betrieb und automatische Updates
+- `version.json` + `tools/stamp-version.mjs` – automatischer Update-Hinweis
+- `_headers` – Cache-Regeln fürs Hosting
 - `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `icon-180.png` – App-Icons
 
 **Wichtig:** Die App braucht zum Installieren eine Adresse mit `https://`
 (oder `localhost`). Ein einfacher Doppelklick auf `index.html` (also `file://`)
-reicht **nicht** — dann startet der Offline-Teil nicht. Deshalb einmal kurz
-hosten (dauert 1–2 Minuten, kostenlos):
+reicht **nicht** — dann startet der Offline-Teil nicht.
 
-## Schnellster Weg: kostenlos hosten (empfohlen)
+## Dauerhaftes Hosting über GitHub + Cloudflare Pages (empfohlen)
 
-**Variante A – Netlify Drop (ohne Konto, Drag & Drop):**
-1. Gehe auf https://app.netlify.com/drop
-2. Zieh den **ganzen Ordner** `konseq-app` in das Feld.
-3. Du bekommst sofort eine `https://…netlify.app`-Adresse.
+So ist die App unter einer festen Adresse erreichbar und jede Änderung geht
+nach dem Hochladen zu GitHub automatisch online.
 
-**Variante B – Vercel oder GitHub Pages:** funktioniert genauso; Ordner
-hochladen, HTTPS-Adresse erhalten.
+1. Auf https://dash.cloudflare.com → **Workers & Pages** → **Create** →
+   **Pages** → **Connect to Git** und das Repository `Joona2011/konseq` wählen.
+2. Einstellungen beim Einrichten:
+   - **Framework preset:** None
+   - **Build command:** `node tools/stamp-version.mjs`
+   - **Build output directory:** `/`  (das Projekt-Stammverzeichnis)
+3. **Save and Deploy.** Nach ~1 Minute bekommst du eine `https://…pages.dev`-Adresse.
+4. Ab jetzt: etwas ändern → zu GitHub pushen → Cloudflare veröffentlicht neu.
+   Die installierte App zeigt dann von selbst **„Neue Version verfügbar“**.
+
+Der Build-Befehl sorgt dafür, dass niemand mehr von Hand eine Versionsnummer
+hochzählen muss. Ohne diesen Befehl funktioniert die App trotzdem — sie lädt die
+neueste Fassung beim nächsten Neuladen —, nur der aktive Hinweis bleibt aus.
+
+**Wichtig beim Umzug auf die neue Adresse:** Die Daten hängen an der Web-Adresse.
+Mache **vorher** in der alten installierten App einen Export
+(Menü → Datensicherung → Daten exportieren) und importiere die Datei **nach** dem
+Umzug einmal auf der neuen Adresse (Menü → Datensicherung → Daten importieren).
+
+**Schnelle Alternative ohne Konto (zum kurzen Testen):** Ordner auf
+https://app.netlify.com/drop ziehen → sofort eine `https://…netlify.app`-Adresse.
 
 ## Auf dem Handy installieren (Android)
 1. Öffne die gehostete Adresse in **Chrome**.
@@ -51,8 +70,9 @@ python3 -m http.server 8000
 - **Offline:** Nach dem ersten Öffnen mit Internet werden App, Schriftart und
   QR-Bibliothek zwischengespeichert; danach läuft alles ohne Netz. (Nur das
   Erzeugen neuer QR-Codes braucht beim allerersten Mal kurz Internet.)
-- **Updates:** Wenn du `index.html` austauschst, erhöhe in `sw.js` die Zeile
-  `const CACHE = "konseq-v1";` auf `-v2`, damit die neue Version geladen wird.
+- **Updates:** laufen automatisch. Nach einem neuen Deploy erkennt die
+  installierte App die neue Fassung und bietet „Neue Version verfügbar“ an;
+  ein Tippen lädt neu. Manuelles Hochzählen einer Versionsnummer entfällt.
 
 ## Und ein echter Play-Store-Eintrag / APK?
 Möglich (z. B. mit Capacitor wird aus dieser PWA eine Android-APK), aber das ist

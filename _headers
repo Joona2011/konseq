@@ -1,0 +1,13 @@
+# Cache-Regeln für Cloudflare Pages und Netlify.
+# Die App-Hülle und die Update-Dateien dürfen nicht veraltet aus dem CDN-Cache
+# kommen, sonst erkennt die installierte App neue Veröffentlichungen nicht.
+/sw.js
+  Cache-Control: no-cache
+/version.json
+  Cache-Control: no-cache, no-store
+/index.html
+  Cache-Control: no-cache
+/app.js
+  Cache-Control: no-cache
+/styles.css
+  Cache-Control: no-cache
