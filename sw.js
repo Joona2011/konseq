@@ -1,5 +1,5 @@
-/* Kadence Service Worker — macht die App offline-fähig und installierbar. */
-const CACHE = "kadence-v9";
+/* Konseq Service Worker — macht die App offline-fähig und installierbar. */
+const CACHE = "konseq-v10";
 const CORE = [
   "./",
   "./index.html",

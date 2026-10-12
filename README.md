@@ -1,4 +1,4 @@
-# Kadence
+# Konseq
 
 Produktivitäts- und Kalender-App mit Score: Routinen, Tagesaufgaben, Wochenziele,
 Kalender und eine Auswertung, die nur mit den eigenen Ansprüchen vergleicht.
@@ -19,7 +19,7 @@ Läuft als installierbare Web-App (PWA) auf Android und am Laptop.
 - Die Entwicklung folgt dem Fahrplan in sitzungsweise abgeschlossenen Schritten.
   Jede Sitzung endet mit einer getesteten Version und einem Commit.
 - Bei jeder Änderung an `index.html` die Cache-Version in `sw.js`
-  (`kadence-vN`) erhöhen, damit installierte Apps das Update laden.
+  (`konseq-vN`) erhöhen, damit installierte Apps das Update laden.
   Ab Fahrplan-Sitzung 3 übernimmt das ein automatischer Update-Hinweis.
 - In `index.html` steht `PREVIEW_BUILD=false`. Nur die Vorschau-Version
   setzt den Wert auf `true` und zeigt damit „Testdaten zurücksetzen“.

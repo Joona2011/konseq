@@ -8,9 +8,9 @@
     <link rel="apple-touch-icon" href="icon-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Kadence" />
+    <meta name="apple-mobile-web-app-title" content="Konseq" />
     <meta name="mobile-web-app-capable" content="yes" />
-<title>Kadence — Produktivität nach deinen Ansprüchen</title>
+<title>Konseq — Produktivität nach deinen Ansprüchen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
@@ -432,7 +432,7 @@ const L_DATA={
 function detectLang(){try{return (navigator.language||"de").toLowerCase().startsWith("de")?"de":"en";}catch(e){return "de";}}
 function setLang(l){LANG=l==="en"?"en":"de";const d=L_DATA[LANG];
   MONTHS.splice(0,12,...d.months);MONTHS_SHORT.splice(0,12,...d.short);DOWS.splice(0,7,...d.dows);DAYNAMES.splice(0,7,...d.days);
-  try{document.documentElement.lang=LANG;document.title=LANG==="en"?"Kadence — Productivity on your own terms":"Kadence — Produktivität nach deinen Ansprüchen";}catch(e){}}
+  try{document.documentElement.lang=LANG;document.title=LANG==="en"?"Konseq — Productivity on your own terms":"Konseq — Produktivität nach deinen Ansprüchen";}catch(e){}}
 function fmtDM(d){return LANG==="en"?`${MONTHS[d.getMonth()]} ${d.getDate()}`:`${d.getDate()}. ${MONTHS[d.getMonth()]}`;}
 const EN={
 "Abbrechen":"Cancel","Alles erledigt ✦":"All done ✦",
@@ -443,7 +443,7 @@ const EN={
 "Bereits vorhanden":"Already added","Beste Woche":"Best week","Bis":"To",
 "Bitte Aufgabe eingeben":"Please enter a task","Bitte Titel eingeben":"Please enter a title",
 "Code empfangen":"Receive code","Code oder Link einfügen":"Paste a code or link",
-"Darstellung":"Appearance","Datei erstellt":"File created","Datum":"Date","Deine Kadence":"Your Kadence",
+"Darstellung":"Appearance","Datei erstellt":"File created","Datum":"Date","Dein Konseq-Score":"Your Konseq score",
 "Download blockiert — nutze Teilen/Kopieren":"Download blocked — use share or copy",
 "Dunkel":"Dark","Dunkler Modus":"Dark mode","Einmalige To-dos":"One-time to-dos","Erledigt ✓":"Done ✓",
 "Fertig":"Done","Fokus":"Focus","Folgt dem System":"Following system",
@@ -463,7 +463,7 @@ const EN={
 "Keine Wochenziele":"No weekly goals","Kompakt":"Compact","Kopieren nicht möglich":"Copying isn't possible","Kopiert":"Copied",
 "Layout":"Layout","Layout-Baukasten":"Layout builder","Leeren":"Clear","Link kopieren":"Copy link",
 "Link oder Code":"Link or code","Link oder Code einfügen":"Paste link or code","Maximal 20 Routinen":"Maximum of 20 routines",
-"Mit der Handy-Kamera scannen — öffnet Kadence mit den Terminen.":"Scan with a phone camera — opens Kadence with the appointments.",
+"Mit der Handy-Kamera scannen — öffnet Konseq mit den Terminen.":"Scan with a phone camera — opens Konseq with the appointments.",
 "Monat wählen":"Choose month","Monate":"Months","Morgen":"Tomorrow","Name":"Name","Name und Zielzahl nötig":"Name and target required",
 "Neue Routine …":"New routine …","Testdaten zurücksetzen":"Reset test data","Nur in der Vorschau · alles neu":"Preview only · start fresh","Testdaten zurücksetzen?":"Reset test data?","Zurücksetzen":"Reset","Alle Routinen, Aufgaben, Wochenziele, Termine und der Score-Verlauf werden gelöscht. Danach wählst du neue Vorlagen. Sprache, Darstellung und Layout bleiben erhalten.":"All routines, tasks, weekly goals, appointments and the score history will be deleted. Then you pick new templates. Language, appearance and layout stay as they are.","Neue Aufgabe …":"New task …","Neues Wochenziel …":"New weekly goal …","Neuer Termin":"New appointment","Neue Tagesaufgabe":"New daily task",
 "Neues Wochenziel":"New weekly goal","Wochenziel bearbeiten":"Edit weekly goal","Speichern":"Save",
@@ -471,7 +471,7 @@ const EN={
 "Keine Wochenziele vorhanden":"No weekly goals yet",
 "Nächste Termine":"Upcoming","Per Link, Datei oder QR":"Via link, file or QR","Punkte":"points","QR-Code":"QR code",
 "Routinen":"Routines","Schließen":"Close","Schule":"School",
-"Sende diesen Link. Beim Öffnen fragt Kadence nach, ob die Termine importiert werden sollen.":"Send this link. When it's opened, Kadence asks whether to import the appointments.",
+"Sende diesen Link. Beim Öffnen fragt Konseq nach, ob die Termine importiert werden sollen.":"Send this link. When it's opened, Konseq asks whether to import the appointments.",
 "Sobald ein ganzes Jahr an Daten vorliegt, siehst du hier deinen Fortschritt gegenüber dem Vorjahr.":"Once a full year of data exists, you'll see your progress compared to last year here.",
 "Startet jede Woche neu bei 0":"Restarts at 0 every week","Startseite als Baukasten":"Build your home screen",
 "System":"System","Tagesaufgaben":"Daily tasks","Teilen per Link":"Share via link","Teilen …":"Share …",
@@ -486,15 +486,15 @@ const EN={
 "dein Schnitt über die letzten Wochen":"your average over recent weeks","einmalig — verfallen nach dem Tag":"one-time — expire after the day",
 "kehren jeden Tag zurück":"come back every day","mehrere auswählbar":"select several","von 100":"of 100","vor einem Jahr":"a year ago","jetzt":"now",
 "wie viel dazu?":"how much to add?","z. B. 120":"e.g. 120","z. B. 4× ins Gym":"e.g. Gym 4×","z. B. Mathe HA S. 42":"e.g. Math homework p. 42",
-"z. B. Zahnarzt":"e.g. Dentist","z. B. für Geburtstage":"e.g. for birthdays","Öffnet Kadence beim Empfänger":"Opens Kadence for the recipient",
+"z. B. Zahnarzt":"e.g. Dentist","z. B. für Geburtstage":"e.g. for birthdays","Öffnet Konseq beim Empfänger":"Opens Konseq for the recipient",
 "Übernehmen":"Apply","Übersicht":"Overview","Überspringen":"Skip","Los geht’s":"Let’s go","Weiter":"Next",
 "Ø 30 Tage":"Ø 30 days","Ø 90 Tage":"Ø 90 days","letzte 7 Tage · deine eigenen Ansprüche":"last 7 days · your own standards",
 "besser als im gleichen Zeitraum vor einem Jahr":"better than the same period last year","unter dem Vorjahreszeitraum":"below the same period last year",
-".ics-Text anzeigen (Fallback)":"Show .ics text (fallback)","Kadence Termine":"Kadence appointments",
+".ics-Text anzeigen (Fallback)":"Show .ics text (fallback)","Konseq Termine":"Konseq appointments",
 "Zu viele Termine für einen QR-Code — nimm dafür Link oder Datei.":"Too many appointments for one QR code — use a link or file instead.",
 "QR-Bibliothek konnte nicht geladen werden (offline?).":"The QR library couldn't load (offline?).",
 "Zurück":"Back","Bearbeiten-Menü":"Edit menu",
-"Sprache":"Language","Wofür nutzt du Kadence?":"What will you use Kadence for?","Vorlagen hinzufügen":"Add templates",
+"Sprache":"Language","Wofür nutzt du Konseq?":"What will you use Konseq for?","Vorlagen hinzufügen":"Add templates",
 "Wähle eine oder mehrere Vorlagen. Du kannst alles später ändern.":"Pick one or more templates. You can change everything later.",
 "Leer starten":"Start empty","Studium":"University","Beruf":"Work","Sport & Fitness":"Sports & fitness","Gewohnheiten":"Habits",
 "Hausaufgaben, Lernen, Klausuren":"Homework, studying, exams","Vorlesungen, Lernphasen, Lesen":"Lectures, study sessions, reading",
@@ -550,9 +550,9 @@ function defaultGrid(){return [
   {id:uid(),type:"goals",w:2,h:2},{id:uid(),type:"appts",w:2,h:1},{id:uid(),type:"calendar",w:2,h:1}];}
 
 /* ---- State ---- */
-const KEY="kadence:v2";
+const KEY="konseq:v1",LEGACY_KEY="kadence:v2";
 let S=load();
-function load(){try{const raw=localStorage.getItem(KEY);if(raw)return migrate(rollover(JSON.parse(raw)));}catch(e){}return seed();}
+function load(){try{const raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY);if(raw)return migrate(rollover(JSON.parse(raw)));}catch(e){}return seed();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function migrate(st){if(!Array.isArray(st.grid)||!st.grid.length)st.grid=defaultGrid();if(!st.theme)st.theme="system";if(!st.postpones)st.postpones={};if(!st.lang)st.lang=detectLang();if(st.setupDone===undefined)st.setupDone=true;return st;}
 function rollover(st){
@@ -681,7 +681,7 @@ function slideRing(){
         <circle cx="98" cy="98" r="${ringR}" fill="none" stroke="${col}" stroke-width="13" stroke-linecap="round"
           stroke-dasharray="${circ}" stroke-dashoffset="${off}" style="transition:stroke-dashoffset .7s var(--ease)"/></svg>
       <div class="ring-center"><div class="score-num" style="color:${col}">${score==null?"–":score}</div><div class="score-of">von 100</div></div></div>
-    <div class="hero-label"><div class="t">Deine Kadence</div>
+    <div class="hero-label"><div class="t">Dein Konseq-Score</div>
       <button class="s" data-act="score-info">${I.info} letzte 7 Tage · deine eigenen Ansprüche</button></div></div>`;
 }
 function slideOverview(){
@@ -866,7 +866,7 @@ function sheetAddMenu(){const item=(act,ic,a,b)=>`<button class="menu-item" data
     ${item("layout",I.grid,"Layout","Startseite als Baukasten")}</div>
     ${PREVIEW_BUILD?`<button class="menu-item" data-menu="reset" style="margin-top:4px"><span class="mi-ic" style="background:var(--warn-soft);color:var(--warn)">${I.routine}</span><span class="mi-tx"><span class="a" style="color:var(--warn)">Testdaten zurücksetzen</span><span class="b">Nur in der Vorschau · alles neu</span></span></button>`:""}</div>`;}
 function sheetScoreInfo(){if(LANG==="en")return `<div class="sheet"><div class="grip-bar"></div><h3>How your score works</h3>
-  <p class="sh-sub" style="line-height:1.6;font-size:13.5px;color:var(--ink-2)">Kadence compares you with <b>nobody</b> but yourself. The number shows how much of your own standards you met over the last <b>7 days</b>.</p>
+  <p class="sh-sub" style="line-height:1.6;font-size:13.5px;color:var(--ink-2)">Konseq compares you with <b>nobody</b> but yourself. The number shows how much of your own standards you met over the last <b>7 days</b>.</p>
   <div style="font-size:13px;color:var(--ink-2);line-height:1.7;padding:0 4px">
     <div style="display:flex;gap:10px;margin-bottom:10px"><span style="color:var(--accent);font-weight:700">•</span><span><b>Routines:</b> done ÷ planned. Worth <b>30–50 points</b>, depending on how many you have.</span></div>
     <div style="display:flex;gap:10px;margin-bottom:10px"><span style="color:var(--accent);font-weight:700">•</span><span><b>Daily tasks:</b> done ÷ due, moving one to tomorrow counts only half. Worth <b>0–30 points</b>, depending on how many are due.</span></div>
@@ -875,7 +875,7 @@ function sheetScoreInfo(){if(LANG==="en")return `<div class="sheet"><div class="
   ${shareLine()}
   <div class="pop-actions"><button class="btn-primary" data-menu="close">Got it</button></div></div>`;
   return `<div class="sheet"><div class="grip-bar"></div><h3>Wie dein Score entsteht</h3>
-  <p class="sh-sub" style="line-height:1.6;font-size:13.5px;color:var(--ink-2)">Kadence vergleicht dich mit <b>niemandem</b> außer dir selbst. Der Wert zeigt, wie viel du von deinen eigenen Ansprüchen der letzten <b>7 Tage</b> erreicht hast.</p>
+  <p class="sh-sub" style="line-height:1.6;font-size:13.5px;color:var(--ink-2)">Konseq vergleicht dich mit <b>niemandem</b> außer dir selbst. Der Wert zeigt, wie viel du von deinen eigenen Ansprüchen der letzten <b>7 Tage</b> erreicht hast.</p>
   <div style="font-size:13px;color:var(--ink-2);line-height:1.7;padding:0 4px">
     <div style="display:flex;gap:10px;margin-bottom:10px"><span style="color:var(--accent);font-weight:700">•</span><span><b>Routinen:</b> erledigt ÷ geplant. Geben je nach Anzahl <b>30–50 Punkte</b>.</span></div>
     <div style="display:flex;gap:10px;margin-bottom:10px"><span style="color:var(--accent);font-weight:700">•</span><span><b>Tagesaufgaben:</b> erledigt ÷ fällig, auf morgen verschoben zählt nur halb. Geben je nach Anzahl <b>0–30 Punkte</b>.</span></div>
@@ -1049,8 +1049,8 @@ function bindSheet(scrim){
   scrim.querySelectorAll("[data-copy]").forEach(el=>el.addEventListener("click",()=>{const t=scrim.querySelector("#"+el.dataset.copy);if(t)copyText(t.value);}));
   scrim.querySelectorAll("[data-doshare]").forEach(el=>el.addEventListener("click",()=>{
     if(el.dataset.doshare==="url"){const i=scrim.querySelector("#share-url");if(i)navShare(i.value);}
-    else if(el.dataset.doshare==="ics")navShareFile(currentICS,"kadence-termine.ics","text/calendar");}));
-  scrim.querySelectorAll("[data-icsdl]").forEach(el=>el.addEventListener("click",()=>downloadFile(currentICS,"kadence-termine.ics","text/calendar")));
+    else if(el.dataset.doshare==="ics")navShareFile(currentICS,"konseq-termine.ics","text/calendar");}));
+  scrim.querySelectorAll("[data-icsdl]").forEach(el=>el.addEventListener("click",()=>downloadFile(currentICS,"konseq-termine.ics","text/calendar")));
   const recg=scrim.querySelector("[data-recgo]");if(recg)recg.addEventListener("click",()=>{
     const inp=scrim.querySelector("#rec-in");const d=inp?decodePayload(inp.value):null;
     if(!d||!d.length){toast("Kein gültiger Code/Link");return;}openImportConfirm(d);});
@@ -1337,7 +1337,7 @@ function openShareMethod(){
   const n=shareSel.size;
   openSheet(`<div class="sheet"><div class="grip-bar"></div><h3>${n} Termin${n>1?"e":""} teilen</h3><p class="sh-sub">Wie möchtest du übertragen?</p>
     <div class="menu-list">
-      ${mi("link",I.link,"Link oder Code","Öffnet Kadence beim Empfänger")}
+      ${mi("link",I.link,"Link oder Code","Öffnet Konseq beim Empfänger")}
       ${mi("ics",I.download,"Kalenderdatei (.ics)","Für jede Kalender-App")}
       ${mi("qr",I.qr,"QR-Code","Zum Abscannen vor Ort")}</div></div>`);
 }
@@ -1345,7 +1345,7 @@ function openMethod(m){
   const sel=selectedAppts();if(!sel.length)return;
   if(m==="link"){const url=payloadURL(sel);
     openSheet(`<div class="popcard" data-stop><h3>Teilen per Link</h3>
-      <p style="font-size:13px;color:var(--ink-2);text-align:center;margin:-6px 0 14px">Sende diesen Link. Beim Öffnen fragt Kadence nach, ob die Termine importiert werden sollen.</p>
+      <p style="font-size:13px;color:var(--ink-2);text-align:center;margin:-6px 0 14px">Sende diesen Link. Beim Öffnen fragt Konseq nach, ob die Termine importiert werden sollen.</p>
       <div class="field"><input type="text" id="share-url" readonly value="${esc(url)}"/></div>
       <div class="pop-actions">${navigator.share?'<button class="btn-primary" data-doshare="url">Teilen …</button>':""}
         <button class="${navigator.share?"btn-ghost":"btn-primary"}" data-copy="share-url">Link kopieren</button></div>
@@ -1362,7 +1362,7 @@ function openMethod(m){
       <button class="btn-ghost" data-menu="close" style="width:100%;padding:12px;border-radius:14px;font-weight:600;margin-top:10px">Schließen</button></div>`,true);
   }else if(m==="qr"){const url=payloadURL(sel);
     openSheet(`<div class="popcard" data-stop><h3>QR-Code</h3>
-      <p style="font-size:13px;color:var(--ink-2);text-align:center;margin:-6px 0 14px">Mit der Handy-Kamera scannen — öffnet Kadence mit den Terminen.</p>
+      <p style="font-size:13px;color:var(--ink-2);text-align:center;margin:-6px 0 14px">Mit der Handy-Kamera scannen — öffnet Konseq mit den Terminen.</p>
       <div class="qr-box" id="qr-box">Wird erstellt …</div>
       <p id="qr-note" style="font-size:12px;color:var(--ink-3);text-align:center;margin-top:10px"></p>
       <button class="btn-ghost" data-menu="close" style="width:100%;padding:12px;border-radius:14px;font-weight:600;margin-top:12px">Schließen</button></div>`,true);
@@ -1412,8 +1412,8 @@ function payloadURL(appts){return location.origin+location.pathname+"#import="+e
 /* ---- .ics ---- */
 function icsEsc(s){return String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");}
 function buildICS(appts){const dt=(d,t)=>d.replace(/-/g,"")+(t?"T"+t.replace(":","")+"00":"");
-  let out=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Kadence//DE","CALSCALE:GREGORIAN"];
-  appts.forEach(a=>{out.push("BEGIN:VEVENT","UID:"+uid()+"@kadence");
+  let out=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Konseq//DE","CALSCALE:GREGORIAN"];
+  appts.forEach(a=>{out.push("BEGIN:VEVENT","UID:"+uid()+"@konseq");
     if(a.from){out.push("DTSTART:"+dt(a.date,a.from));out.push("DTEND:"+dt(a.date,a.to||a.from));}
     else{out.push("DTSTART;VALUE=DATE:"+a.date.replace(/-/g,""));}
     if(a.yearly)out.push("RRULE:FREQ=YEARLY");
@@ -1432,9 +1432,9 @@ function renderQR(text){loadScript("https://cdnjs.cloudflare.com/ajax/libs/qrcod
 /* ---- Teilen-/Kopier-Helfer ---- */
 function copyText(t){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("Kopiert")).catch(()=>fallbackCopy(t));}else fallbackCopy(t);}catch(e){fallbackCopy(t);}}
 function fallbackCopy(t){try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Kopiert");}catch(e){toast("Kopieren nicht möglich");}}
-function navShare(text){if(navigator.share)navigator.share({title:tx("Kadence Termine"),text}).catch(()=>{});else copyText(text);}
+function navShare(text){if(navigator.share)navigator.share({title:tx("Konseq Termine"),text}).catch(()=>{});else copyText(text);}
 function navShareFile(text,name,type){try{const file=new File([text],name,{type});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:tx("Kadence Termine")}).catch(()=>{});return;}}catch(e){}
+    if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:tx("Konseq Termine")}).catch(()=>{});return;}}catch(e){}
   downloadFile(text,name,type);}
 function downloadFile(text,name,type){try{const blob=new Blob([text],{type});const url=URL.createObjectURL(blob);
     const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();
@@ -1490,13 +1490,13 @@ function updateDots(){app.querySelectorAll(".dot-i").forEach((d,i)=>d.classList.
 /* ================= Erst-Tutorial ================= */
 const TUT_VERSION=2;
 const TUT=[
-  {ic:I.target,t:"Willkommen bei Kadence",b:"Dein Score zeigt, wie viel du von <b>deinen eigenen</b> Zielen der letzten Woche geschafft hast — kein Vergleich mit anderen. Eine perfekte Woche ergibt <b>100</b>."},
+  {ic:I.target,t:"Willkommen bei Konseq",b:"Dein Score zeigt, wie viel du von <b>deinen eigenen</b> Zielen der letzten Woche geschafft hast — kein Vergleich mit anderen. Eine perfekte Woche ergibt <b>100</b>."},
   {ic:I.task,t:"Drei Bausteine",b:"<b>Routinen</b> kehren täglich zurück. <b>Tagesaufgaben</b> sind einmalig — halte eine gedrückt, um sie auf morgen zu schieben. <b>Wochenziele</b> zählst du einfach hoch."},
   {ic:I.cal,t:"Dein Kalender",b:"Zwischen Monaten <b>wischen</b>, den Monatstitel tippen zum schnellen Springen, und ein Tag öffnet die Tagesansicht. Termine lassen sich <b>jährlich wiederholen</b> — praktisch für Geburtstage."},
   {ic:I.grid,t:"Mach es zu deinem",b:"Wisch über den Ring für deine Auswertungen. Über das Menü oben rechts gestaltest du dein Layout, wählst Hell/Dunkel und teilst Termine."},
 ];
 const TUT_EN=[
-  {ic:I.target,t:"Welcome to Kadence",b:"Your score shows how much of <b>your own</b> goals you reached over the last week — no comparison with others. A perfect week gives <b>100</b>."},
+  {ic:I.target,t:"Welcome to Konseq",b:"Your score shows how much of <b>your own</b> goals you reached over the last week — no comparison with others. A perfect week gives <b>100</b>."},
   {ic:I.task,t:"Three building blocks",b:"<b>Routines</b> come back every day. <b>Daily tasks</b> are one-time — hold one to move it to tomorrow. <b>Weekly goals</b> you simply count up."},
   {ic:I.cal,t:"Your calendar",b:"<b>Swipe</b> between months, tap the month title to jump quickly, and a day opens the day view. Appointments can <b>repeat yearly</b> — handy for birthdays."},
   {ic:I.grid,t:"Make it yours",b:"Swipe across the ring for your stats. The menu at the top right lets you shape your layout, pick light or dark mode, change the language and share appointments."},
@@ -1563,7 +1563,7 @@ function openProfilePicker(first){profSel=new Set();const sc=overlayScrim(!first
 function drawProfiles(sc,first){
   const rows=PROFILES.map(([k,ic,a,b])=>`<div class="share-item ${profSel.has(k)?"sel":""}" data-prof="${k}"><div class="sq">${I.check}</div>
     <span class="prof-ic">${I[ic]}</span><div class="si-main"><div class="t">${a}</div><div class="s">${b}</div></div></div>`).join("");
-  sc.innerHTML=tr(`<div class="popcard" style="max-width:340px"><h3 style="margin-bottom:6px">${first?"Wofür nutzt du Kadence?":"Vorlagen hinzufügen"}</h3>
+  sc.innerHTML=tr(`<div class="popcard" style="max-width:340px"><h3 style="margin-bottom:6px">${first?"Wofür nutzt du Konseq?":"Vorlagen hinzufügen"}</h3>
     <p class="prof-sub">Wähle eine oder mehrere Vorlagen. Du kannst alles später ändern.</p>
     <div class="manage-list" style="gap:8px;margin-top:0">${rows}</div>
     <div class="pop-actions">${first?`<button class="btn-ghost" data-prof-go="empty">Leer starten</button>`:`<button class="btn-ghost" data-prof-go="cancel">Abbrechen</button>`}
