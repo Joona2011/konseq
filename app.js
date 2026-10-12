@@ -18,6 +18,7 @@ const DAYNAMES=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag",
    Deutsch ist die Quellsprache; neue Texte nur in EN ergänzen. */
 let LANG="de";
 const PREVIEW_BUILD=false; // App-Paket: false -> kein Zurücksetzen-Knopf
+const APP_VERSION="20261012144026"; // wird beim Deploy von tools/stamp-version.mjs gesetzt (nicht von Hand ändern)
 const MONTHS_SHORT=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const L_DATA={
   de:{months:["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
@@ -55,6 +56,7 @@ const EN={
 "Import fehlgeschlagen":"Import failed","Sicherung geladen":"Backup restored",
 "Füge einen Link oder Code ein — oder wähle eine .ics-Datei aus Google oder Apple Kalender.":"Paste a link or code — or choose an .ics file from Google or Apple Calendar.",
 "Datei wählen (.ics)":"Choose a file (.ics)","Keine Termine in der Datei":"No appointments in the file","(ohne Titel)":"(no title)",
+"Neue Version verfügbar":"Update available","Neu laden":"Reload",
 "Dunkel":"Dark","Dunkler Modus":"Dark mode","Einmalige To-dos":"One-time to-dos","Erledigt ✓":"Done ✓",
 "Fertig":"Done","Fokus":"Focus","Folgt dem System":"Following system",
 "Fortschritt statt Alles-oder-Nichts":"Progress, not all-or-nothing","Fortschritt über die Woche":"Progress across the week",
@@ -1320,3 +1322,48 @@ render();
 initImport();
 if(!S.setupDone)openLangPicker();
 else if(S.tutSeen!==TUT_VERSION)openTutorial();
+
+/* ================= Automatischer Update-Hinweis =================
+   Ersetzt das manuelle Hochzählen der Cache-Version. Erkennt eine neue
+   Veröffentlichung auf zwei Wegen und zeigt dann eine dezente Leiste
+   „Neue Version verfügbar · Neu laden":
+   1) version.json (vom Deploy gestempelt) unterscheidet sich von APP_VERSION,
+   2) der Service-Worker meldet eine wartende neue Fassung.
+   Der Service-Worker lädt die App-Hülle „network-first", neue Deploys sind
+   darum nach dem Neuladen sofort aktiv. */
+let updateShown=false, waitingWorker=null;
+function showUpdateBar(){
+  if(updateShown)return;updateShown=true;
+  const bar=document.createElement("div");bar.className="update-bar";
+  bar.innerHTML=tr(`<span>Neue Version verfügbar</span><button type="button" class="update-reload">Neu laden</button>`);
+  bar.querySelector(".update-reload").addEventListener("click",()=>{
+    try{if(waitingWorker){waitingWorker.postMessage({type:"SKIP_WAITING"});}}catch(e){}
+    location.reload();
+  });
+  document.body.appendChild(bar);
+  requestAnimationFrame(()=>bar.classList.add("show"));
+}
+async function checkVersion(){
+  try{
+    const res=await fetch("./version.json?ts="+Date.now(),{cache:"no-store"});
+    if(!res.ok)return;
+    const data=await res.json();
+    if(data&&typeof data.version==="string"&&data.version!=="dev"&&APP_VERSION!=="dev"&&data.version!==APP_VERSION)showUpdateBar();
+  }catch(e){/* offline o. Ä. — kein Hinweis */}
+}
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      if(reg.waiting){waitingWorker=reg.waiting;showUpdateBar();}
+      reg.addEventListener("updatefound",()=>{const nw=reg.installing;if(!nw)return;
+        nw.addEventListener("statechange",()=>{
+          if(nw.state==="installed"&&navigator.serviceWorker.controller){waitingWorker=reg.waiting||nw;showUpdateBar();}});});
+    }).catch(()=>{});
+    // Nach einem SKIP_WAITING übernimmt der neue Worker -> genau einmal neu laden
+    let reloaded=false;
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloaded)return;reloaded=true;location.reload();});
+  });
+}
+checkVersion();
+setInterval(checkVersion,5*60*1000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkVersion();});

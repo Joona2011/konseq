@@ -377,3 +377,15 @@ input{font-family:inherit;font-size:inherit}
 .ylv{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
 .yll{font-size:11px;color:var(--ink-3);font-weight:600;margin-top:4px}
 .yoy-empty{font-size:13.5px;color:var(--ink-3);text-align:center;line-height:1.6;max-width:262px;padding:18px 6px}
+
+/* Update-Hinweis (automatisch; ersetzt manuelles Versions-Hochzählen) */
+.update-bar{position:fixed;left:50%;bottom:16px;transform:translate(-50%,160%);
+  display:flex;align-items:center;gap:12px;max-width:calc(100% - 32px);
+  padding:10px 12px 10px 16px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--shadow-2);
+  font:500 13.5px/1.3 var(--font);z-index:9999;transition:transform var(--dur) var(--ease)}
+.update-bar.show{transform:translate(-50%,0)}
+.update-bar .update-reload{flex:none;padding:7px 14px;border:1px solid var(--line);
+  border-radius:var(--pill);background:var(--surface-2);color:var(--ink);
+  font:600 13px var(--font);cursor:pointer}
+.update-bar .update-reload:active{transform:scale(.97)}
