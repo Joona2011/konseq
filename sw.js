@@ -1,6 +1,6 @@
 /* Konseq Service Worker — Offline-Betrieb + automatische Updates.
    Strategie:
-   - App-Hülle (Navigationen, app.js, styles.css): network-first. Ein neuer
+   - App-Hülle (Navigationen, app.js, analysis.js, styles.css): network-first. Ein neuer
      Deploy ist darum nach dem Neuladen sofort aktiv; offline kommt die
      zwischengespeicherte Fassung.
    - Unveränderliche Dateien (Icons, Schrift, CDN): cache-first.
@@ -14,6 +14,7 @@ const CORE = [
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./analysis.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
@@ -41,7 +42,7 @@ self.addEventListener("message", (e) => {
 // Gehört die URL zur App-Hülle (soll network-first laufen)?
 function isShell(url, req) {
   if (req.mode === "navigate") return true;
-  return /\/(index\.html|app\.js|styles\.css)$/.test(url.pathname) ||
+  return /\/(index\.html|app\.js|analysis\.js|styles\.css)$/.test(url.pathname) ||
          url.pathname === "/" || url.pathname.endsWith("/");
 }
 
