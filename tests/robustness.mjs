@@ -20,7 +20,7 @@ async function open(raw, fn, name) {
 const saved = p => p.evaluate(() => JSON.parse(localStorage.getItem("konseq:v1")));
 const onboarding = p => p.locator("[data-lang]").count();
 const good = {
-  lastDate: "2026-10-04", setupDone: true, tutSeen: 2, lang: "de", theme: "light",
+  lastDate: "2026-10-05", setupDone: true, tutSeen: 2, lang: "de", theme: "light", // kein Tageswechsel: nichts darf sich ändern
   routines: [{ id: "a", name: "Lesen", done: true }], tasks: [{ id: "t", name: "Mathe", due: "2026-10-05", done: false }],
   goals: [{ id: "g", name: "Gym", target: 3, count: 1, repeat: true }],
   appointments: [{ id: "x", title: "Zahnarzt", date: "2026-10-20", from: "09:00", to: "10:00", yearly: false }],
