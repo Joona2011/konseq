@@ -59,9 +59,10 @@ function routinesFor(st,s,h,lg){
   // (aktuelle Routinen + an dem Tag erledigte = genau die Anzahl im Score-Verlauf).
   if(!lg||!h||typeof h.rTotal!=="number")return null;
   const done=lg.r||{};const ids=new Set(Object.keys(done));
-  (st.routines||[]).forEach(r=>ids.add(r.id));
+  const routines=Array.isArray(st.routines)?st.routines.filter(r=>r&&r.id):[];
+  routines.forEach(r=>ids.add(r.id));
   if(ids.size!==h.rTotal||Object.keys(done).length!==h.rDone)return null;
-  const cur={};(st.routines||[]).forEach(r=>cur[r.id]=r.name);
+  const cur={};routines.forEach(r=>cur[r.id]=r.name);
   return [...ids].map(id=>({id,name:String(cur[id]||(done[id]&&done[id].name)||""),done:!!done[id]}));}
 function collectDays(st,y,m,opts){
   const last=new Date(y,m+1,0).getDate();const out=[];

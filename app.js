@@ -1267,7 +1267,9 @@ function viewAnalysis(){
   const sub="Was gut läuft und was nicht";
   if(!KA())return head("Monatsanalyse",sub)+`<div class="scroll">${emptyMini("Die Analyse konnte nicht geladen werden. Öffne die App einmal mit Internet.")}</div>`;
   if(anaY==null){const d=defaultAnalysisMonth();anaY=d.y;anaM=d.m;}
-  const r=runAnalysis(anaY,anaM);anaLast=r;
+  let r;try{r=runAnalysis(anaY,anaM);}catch(e){anaLast=null;
+    return head("Monatsanalyse",sub)+`<div class="scroll">${emptyMini("Die Analyse konnte nicht geladen werden. Öffne die App einmal mit Internet.")}</div>`;}
+  anaLast=r;
   const t=today(),curIdx=t.getFullYear()*12+t.getMonth(),idx=anaY*12+anaM;
   const first=KA().firstDataMonth(S);const firstIdx=first?first.y*12+first.m:curIdx;
   const canPrev=idx>Math.min(firstIdx,curIdx),canNext=idx<curIdx;

@@ -87,6 +87,10 @@ test("Robust gegen kaputte oder leere Daten", () => {
     const r = KA.analyzeMonth(st, 2026, 8, { lang: "de", today: TODAY });
     assert.equal(r.findings.length, 0);
   }
+  const odd = buildSeptember();
+  for (const k of Object.keys(odd.log)) delete odd.log[k].plan;
+  odd.routines.push(null, "x", { name: "ohne id" });
+  assert.doesNotThrow(() => KA.analyzeMonth(odd, 2026, 8, { lang: "de", today: TODAY }));
   assert.equal(KA.firstDataMonth({}), null);
   assert.deepEqual(KA.firstDataMonth(buildSeptember()), { y: 2026, m: 8 });
 });
