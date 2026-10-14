@@ -11,6 +11,8 @@ Läuft als installierbare Web-App (PWA) auf Android und am Laptop.
 | `index.html` | Gerüst der Seite, lädt `styles.css` und `app.js` |
 | `styles.css` | Das gesamte Aussehen |
 | `app.js` | Die komplette Logik (Oberfläche, Score, Kalender, Übersetzungen DE/EN) |
+| `analysis.js` | Regeln der Monatsanalyse (reine Funktionen, ohne Oberfläche) |
+| `tests/` | Automatische Tests: `node --test tests/*.test.mjs` (Regeln) und `tests/browser.mjs` (App in Chromium) |
 | `manifest.webmanifest` | App-Name, Icons, Vollbild-Einstellungen |
 | `sw.js` | Service-Worker: Offline-Betrieb und automatische Updates |
 | `version.json` | Aktuelle Versionskennung für den Update-Hinweis (vom Deploy gesetzt) |
@@ -47,5 +49,18 @@ Sitzung 3 erledigt: Code in `index.html` / `styles.css` / `app.js` aufgeteilt,
 eigenes Hosting über GitHub + Cloudflare Pages (siehe `ANLEITUNG.md`), und ein
 automatischer Update-Hinweis ersetzt das manuelle Hochzählen der Version. Damit
 ist Phase 1 (Fundament) abgeschlossen.
+
+Sitzung 4 erledigt: Supabase-Schema und Zugriffsregeln (siehe `supabase/`).
+
+Sitzung 24 (Monatsanalyse) vorgezogen, weil sie ohne Konto auskommt: Menü →
+„Monatsanalyse“ zeigt pro Monat konkrete Befunde, was gut läuft und was nicht
+(z. B. „„Sport“ fällt vor allem dienstags aus: erledigt an 0 von 5 Dienstagen“).
+Die Befunde entstehen nach festen Regeln auf dem Gerät, immer mit echten Zahlen,
+und nur bei genug Daten (mindestens 7 erfasste Tage). In der ersten Woche eines
+Monats weist die Startseite auf die fertige Analyse des Vormonats hin. Dafür hält
+die App beim Tageswechsel zusätzlich fest, was an dem Tag geplant war
+(`S.log[Tag].plan`), und sichert direkt nach dem Tageswechsel. Die Premium-Sperre
+(nur der erste Befund lesbar) ist vorbereitet (`ANALYSIS_GATE` in `app.js`) und
+wird mit dem Abo in Sitzung 26/27 eingeschaltet.
 
 Daten liegen weiterhin lokal im Browser; Konten und echter Sync folgen in Phase 2.

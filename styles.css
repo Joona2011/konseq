@@ -389,3 +389,36 @@ input{font-family:inherit;font-size:inherit}
   border-radius:var(--pill);background:var(--surface-2);color:var(--ink);
   font:600 13px var(--font);cursor:pointer}
 .update-bar .update-reload:active{transform:scale(.97)}
+
+/* ===== Monatsanalyse (Sitzung 24) ===== */
+.ana-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 0 14px}
+.ana-arrow{width:48px;height:48px;border-radius:var(--pill);background:var(--surface);box-shadow:var(--shadow-1);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink);transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease)}
+.ana-arrow:active{transform:scale(.92)}.ana-arrow svg{width:18px;height:18px}
+.ana-arrow:disabled{opacity:.3;cursor:default;transform:none}
+.ana-month{font-size:17px;font-weight:600;letter-spacing:-.01em;text-align:center}
+.ana-month small{font-size:12.5px;font-weight:500;color:var(--ink-3);margin-left:2px}
+.stat .v.up{color:var(--accent)}.stat .v.down{color:var(--warn)}
+.ana-sec{margin-top:22px}
+.ana-h{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin:0 4px 10px;display:flex;align-items:center;gap:7px}
+.ana-h::before{content:"";width:8px;height:8px;border-radius:50%;flex:none}
+.ana-h.good::before{background:var(--accent)}.ana-h.bad::before{background:var(--warn)}
+.ana-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ana-item{background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow-1);padding:14px 14px 14px 12px;display:flex;gap:11px;align-items:flex-start}
+.ana-item p{margin:0;font-size:14px;line-height:1.5;color:var(--ink)}
+.ana-dot{width:4px;align-self:stretch;border-radius:4px;flex:none;min-height:20px}
+.ana-item.good .ana-dot{background:var(--accent)}.ana-item.bad .ana-dot{background:var(--warn)}
+.ana-item.locked p{filter:blur(5px);user-select:none}
+.ana-none{font-size:13px;color:var(--ink-3);margin:0 4px;line-height:1.5}
+.ana-upsell{font-size:13px;font-weight:600;color:var(--accent-ink);text-align:center;margin:16px 0 0}
+.ana-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:26px 20px}
+.ana-empty p{margin:0;font-size:13.5px;line-height:1.6;color:var(--ink-2)}.ana-empty b{color:var(--ink)}
+.ana-empty-ic{width:52px;height:52px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.ana-empty-ic svg{width:24px;height:24px}
+.ana-banner{width:100%;display:flex;align-items:center;gap:12px;text-align:left;background:var(--surface);border-radius:var(--r-md);box-shadow:var(--shadow-1);padding:12px 12px 12px 12px;margin:4px 0 6px;transition:transform var(--dur) var(--ease)}
+.ana-banner:active{transform:scale(.98)}
+.ana-banner-ic{width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.ana-banner-ic svg{width:19px;height:19px}
+.ana-banner-tx{display:flex;flex-direction:column;min-width:0}
+.ana-banner-tx .a{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+.ana-banner-tx .b{font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.ana-banner .chev{margin-left:auto;color:var(--ink-3);display:flex}.ana-banner .chev svg{width:16px;height:16px}

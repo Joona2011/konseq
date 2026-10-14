@@ -112,7 +112,15 @@ const EN={
 "Hausaufgaben, Lernen, Klausuren":"Homework, studying, exams","Vorlesungen, Lernphasen, Lesen":"Lectures, study sessions, reading",
 "Planung, Fokus, Posteingang":"Planning, focus, inbox","Training, Bewegung, Wasser":"Workouts, movement, water",
 "Bessere Routinen aufbauen":"Build better routines","Schule, Studium, Beruf, Sport …":"School, university, work, sports …",
-"Vorlagen hinzugefügt":"Templates added","Schon alles vorhanden":"Everything's already there"};
+"Vorlagen hinzugefügt":"Templates added","Schon alles vorhanden":"Everything's already there",
+"Monatsanalyse":"Monthly review","Was gut läuft und was nicht":"What's working and what isn't",
+"Läuft gut":"Going well","Ausbaufähig":"Room to improve","bisher":"so far",
+"Ø Score":"Avg score","Tage erfasst":"Days tracked","ggü. Vormonat":"vs last month",
+"Vorheriger Monat":"Previous month","Nächster Monat":"Next month","Deine Monatsanalyse ist da":"Your monthly review is ready",
+"Hier ist in diesem Monat nichts auffällig.":"Nothing stands out here this month.",
+"Alle Befunde entstehen nach festen Regeln direkt auf deinem Gerät, nur aus deinen eigenen Daten.":"All findings are made by fixed rules right on your device, only from your own data.",
+"Die Analyse konnte nicht geladen werden. Öffne die App einmal mit Internet.":"The review couldn't be loaded. Open the app once while online.",
+"Mit Premium siehst du alle Befunde.":"Premium shows all findings."};
 const EN_PAT=[
   [/^(\d+) erledigt$/,"$1 done"],[/^\+(\d+) weitere$/,"+$1 more"],
   [/^Ziel: (\d+)( · wiederholt sich)?$/,(m,a,b)=>"Target: "+a+(b?" · repeats weekly":"")],
@@ -120,7 +128,8 @@ const EN_PAT=[
   [/^(\d+) Termine? teilen$/,(m,n)=>`Share ${n} appointment${n==="1"?"":"s"}`],
   [/^(\d+) Termine? empfangen$/,(m,n)=>`${n} appointment${n==="1"?"":"s"} received`],
   [/^(\d+) Termine? importiert$/,(m,n)=>`${n} appointment${n==="1"?"":"s"} imported`],
-  [/^Alle auswählen$/,"Select all"],[/^Keine auswählen$/,"Select none"],
+  [/^Alle auswählen$/,"Select all"],
+  [/^(\d+) Befunde?$/,(m,n)=>`${n} finding${n==="1"?"":"s"}`],[/^Keine auswählen$/,"Select none"],
   [/^Vorlage „(.+)“ übernommen$/,"Template “$1” applied"],
   [/^(Wochen|Monate) ·$/,(m,a)=>(a==="Wochen"?"Weeks":"Months")+" ·"]];
 // Einzelnen Text übersetzen (Leerraum am Rand bleibt erhalten)
@@ -165,7 +174,12 @@ function defaultGrid(){return [
 const KEY="konseq:v1",LEGACY_KEY="kadence:v2",RECOVERY_KEY="konseq:recovery";
 let S=load();
 function load(){let raw=null;
-  try{raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY);if(raw)return migrate(rollover(JSON.parse(raw)));}
+  try{raw=localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY);
+    if(raw){const st=JSON.parse(raw);const before=st&&st.lastDate;const out=migrate(rollover(st));
+      // Nach einem Tageswechsel sofort sichern (Score-Verlauf + Tagesplan), nicht erst bei der
+      // nächsten Aktion. Nur auf diesem Erfolgsweg — ein Lesefehler überschreibt nie Daten.
+      if(st&&typeof st==="object"&&out===st&&out.lastDate!==before){try{localStorage.setItem(KEY,JSON.stringify(out));}catch(e){}}
+      return out;}}
   catch(e){
     // Gespeicherte Daten nicht lesbar: Rohdaten aufbewahren, bevor die App neu startet.
     // Sonst würde der nächste save() sie unwiderruflich mit dem leeren Stand überschreiben.
@@ -211,7 +225,11 @@ function rollover(st){
     if(!st.history[st.lastDate]){
       const rt=st.routines.length,rd=st.routines.filter(r=>r.done).length;
       const due=st.tasks.filter(x=>x.due===st.lastDate);const pp=(st.postpones&&st.postpones[st.lastDate])||0;
-      st.history[st.lastDate]={rDone:rd,rTotal:rt,tDone:due.filter(x=>x.done).length+0.5*pp,tTotal:due.length+pp,gPace:goalPaceAvg(st,new Date(st.lastDate+"T00:00:00")),gCount:(st.goals||[]).filter(g=>g.target>0).length};}}
+      st.history[st.lastDate]={rDone:rd,rTotal:rt,tDone:due.filter(x=>x.done).length+0.5*pp,tTotal:due.length+pp,gPace:goalPaceAvg(st,new Date(st.lastDate+"T00:00:00")),gCount:(st.goals||[]).filter(g=>g.target>0).length};}
+    // Tagesplan des abgelaufenen Tages festhalten (Grundlage der Monatsanalyse)
+    try{if(!st.log||typeof st.log!=="object")st.log={};
+      let lg=st.log[st.lastDate];if(!lg||typeof lg!=="object")lg=st.log[st.lastDate]={r:{},t:{},g:{}};
+      if(!lg.plan)lg.plan=planSnapshot(st,st.lastDate);}catch(e){/* Analyse-Daten sind optional, Laden darf nie scheitern */}}
   st.routines.forEach(r=>r.done=false);
   // Neue Woche (Montag): wiederholende Wochenziele starten bei 0, einmalige Wochenziele enden
   if(st.lastDate){const wk=ds=>{const x=new Date(ds+"T00:00:00");return dstr(addDays(x,-(weekdayMon(x)-1)));};
@@ -231,6 +249,14 @@ function logGoalDelta(g,delta){if(!g||!delta)return;const e=dayLog();
   const rec=e.g[g.id]||(e.g[g.id]={name:g.name,target:g.target,add:0});
   rec.name=g.name;rec.target=g.target;rec.add=(rec.add||0)+delta;rec.done=g.target>0&&g.count>=g.target;
   if(!rec.add&&!rec.done)delete e.g[g.id];}
+// Was an einem Tag geplant war: Routinen, fällige Aufgaben, Wochenziele mit Stand.
+// Wird beim Tageswechsel für den abgelaufenen Tag gespeichert (log[Tag].plan), damit
+// die Monatsanalyse auch Nicht-Erledigtes sicher kennt. Kompakt: {id: Name}.
+function planSnapshot(st,ds){const r={},t={},g={};
+  (st.routines||[]).forEach(x=>{if(x&&x.id)r[x.id]=String(x.name||"");});
+  (st.tasks||[]).forEach(x=>{if(x&&x.id&&x.due===ds)t[x.id]=String(x.name||"");});
+  (st.goals||[]).forEach(x=>{if(x&&x.id&&x.target>0)g[x.id]=[String(x.name||""),+x.target||0,+x.count||0];});
+  return {r,t,g};}
 
 /* ---- Score ----
    Eine konsequente Woche ergibt 100: alle Routinen täglich, alle Tagesaufgaben
@@ -296,6 +322,7 @@ const I={
   globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>',
   inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13l2-8h12l2 8M4 13v6a1 1 0 001 1h14a1 1 0 001-1v-6M4 13h5l1 2h4l1-2h5"/></svg>',
   arrowUp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
+  chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   arrowDown:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>',
 };
 const compIcon=t=>t==="routines"?I.routine:t==="tasks"?I.task:t==="goals"?I.target:I.cal;
@@ -314,6 +341,7 @@ function render(back){
   else if(route==="termine")html=viewCalendar();
   else if(route==="share")html=viewShare();
   else if(route==="layout")html=viewLayout();
+  else if(route==="analysis")html=viewAnalysis();
   app.innerHTML=tr(`<div class="screen ${back?"back":""}">${html}</div>`);
   bind();
 }
@@ -329,6 +357,7 @@ function viewHome(){
     <div class="date"><span class="day">${DAYNAMES[d.getDay()]}</span><span class="full">${fmtDM(d)}</span></div>
     <button class="icon-btn" data-act="open-menu" aria-label="Bearbeiten">${I.grid}</button></div>
   <div class="scroll">
+    ${analysisBanner()}
     <div class="hero-carousel">
       <div class="slides" id="hero-slides">${slides.join("")}</div>
       <div class="dots">${dots}</div>
@@ -528,6 +557,7 @@ function sheetAddMenu(){const item=(act,ic,a,b)=>`<button class="menu-item" data
     ${item("share",I.share,"Termine teilen","Per Link, Datei oder QR")}
     ${item("receive",I.inbox,"Termine empfangen","Code oder Link einfügen")}
     ${item("templates",I.plus,"Vorlagen hinzufügen","Schule, Studium, Beruf, Sport …")}
+    ${item("analysis",I.chart,"Monatsanalyse","Was gut läuft und was nicht")}
     ${item("layout",I.grid,"Layout","Startseite als Baukasten")}
     ${item("backup",I.shield,"Datensicherung","Export & Import als Datei")}</div>
     ${PREVIEW_BUILD?`<button class="menu-item" data-menu="reset" style="margin-top:4px"><span class="mi-ic" style="background:var(--warn-soft);color:var(--warn)">${I.routine}</span><span class="mi-tx"><span class="a" style="color:var(--warn)">Testdaten zurücksetzen</span><span class="b">Nur in der Vorschau · alles neu</span></span></button>`:""}</div>`;}
@@ -641,6 +671,7 @@ function bindActs(root){root.querySelectorAll("[data-act]").forEach(el=>el.addEv
     else if(a==="open-menu")openSheet(sheetAddMenu());
     else if(a==="score-info")openSheet(sheetScoreInfo());
     else if(a==="open-cal")go("termine");
+    else if(a==="open-analysis"){anaY=null;go("analysis");}
     else if(a==="new-task"){taskDraft={name:"",mode:"heute",date:todayStr()};openSheet(sheetNewTask(),true);}
     else if(a==="new-goal"){goalDraft={id:null,name:"",target:"",repeat:true};openSheet(sheetNewGoal(),true);}
     else if(a==="new-appt-cal"){apptDraft={title:"",date:calSel||todayStr(),from:"",to:"",yearly:false};openSheet(sheetNewAppt(),true);}
@@ -698,6 +729,8 @@ function bind(){
   if(route==="termine")bindCalendar();
   // Teilen
   if(route==="share")bindShare();
+  // Monatsanalyse
+  if(route==="analysis")bindAnalysis();
   // Startseite: Wisch-Karussell
   if(route==="home")bindHero();
 }
@@ -711,7 +744,8 @@ function bindSheet(scrim){
     if(m==="backup"){closeSheet();openSheet(sheetBackup());return;}
     if(m==="reset"&&PREVIEW_BUILD){openResetConfirm();return;}
     closeSheet();
-    if(["routines","tasks","goals","termine","layout"].includes(m))go(m);}));
+    if(m==="analysis")anaY=null;
+    if(["routines","tasks","goals","termine","layout","analysis"].includes(m))go(m);}));
   scrim.querySelectorAll("[data-method]").forEach(el=>el.addEventListener("click",()=>openMethod(el.dataset.method)));
   scrim.querySelectorAll("[data-copy]").forEach(el=>el.addEventListener("click",()=>{const t=scrim.querySelector("#"+el.dataset.copy);if(t)copyText(t.value);}));
   scrim.querySelectorAll("[data-doshare]").forEach(el=>el.addEventListener("click",()=>{
@@ -1232,6 +1266,71 @@ function yoy(){const cur=avgDays(30);let sum=0,c=0;
   const prev=c?sum/c:null;return {cur,prev,delta:(cur!=null&&prev!=null)?Math.round((cur-prev)*100):null};}
 
 function bestWeek(n){const ws=weeklyAverages(n).filter(w=>w.value!=null);return ws.length?Math.max(...ws.map(w=>w.value)):null;}
+
+/* ================= Monatsanalyse (Sitzung 24) =================
+   Die Regeln stehen in analysis.js (reine Funktionen, getestet). Hier nur
+   Anzeige, Monatsauswahl und der Hinweis auf der Startseite.
+   ANALYSIS_GATE: Premium-Sperre (Phase 8, Sitzungen 26/27). Solange es kein
+   Abo gibt, sieht jeder alle Befunde; auf true gesetzt bleibt nur der stärkste
+   Befund lesbar, die übrigen erscheinen verschwommen. */
+const ANALYSIS_GATE=false;
+let anaY=null,anaM=null,anaLast=null;
+const KA=()=>(typeof window!=="undefined"&&window.KonseqAnalysis)||null;
+function runAnalysis(y,m){return KA().analyzeMonth(S,y,m,{lang:LANG,today:todayStr(),scoreFor:dayScoreForDate});}
+function prevMonthOf(y,m){return m===0?{y:y-1,m:11}:{y,m:m-1};}
+function monthKeyOf(y,m){return `${y}-${pad(m+1)}`;}
+// Standard: in der ersten Woche eines Monats der abgeschlossene Vormonat (falls genug Daten), sonst der laufende
+function defaultAnalysisMonth(){const t=today(),y=t.getFullYear(),m=t.getMonth();
+  if(t.getDate()<=7){const p=prevMonthOf(y,m);try{if(runAnalysis(p.y,p.m).enough)return p;}catch(e){}}
+  return {y,m};}
+function analysisBanner(){
+  try{if(!KA())return "";const t=today();if(t.getDate()>7)return "";
+    const p=prevMonthOf(t.getFullYear(),t.getMonth());if(S.analysisSeen===monthKeyOf(p.y,p.m))return "";
+    const r=runAnalysis(p.y,p.m);if(!r.enough||!r.findings.length)return "";
+    return `<button type="button" class="ana-banner" data-act="open-analysis"><span class="ana-banner-ic">${I.chart}</span>
+      <span class="ana-banner-tx"><span class="a">Deine Monatsanalyse ist da</span><span class="b">${MONTHS[p.m]} · <span>${r.findings.length} ${r.findings.length===1?"Befund":"Befunde"}</span></span></span>
+      <span class="chev">${I.chevR}</span></button>`;}catch(e){return "";}}
+function anaItem(f,locked){return `<li class="ana-item ${f.kind}${locked?" locked":""}"${locked?' aria-hidden="true"':""}><span class="ana-dot" aria-hidden="true"></span><p>${esc(f.text)}</p></li>`;}
+function viewAnalysis(){
+  const sub="Was gut läuft und was nicht";
+  if(!KA())return head("Monatsanalyse",sub)+`<div class="scroll">${emptyMini("Die Analyse konnte nicht geladen werden. Öffne die App einmal mit Internet.")}</div>`;
+  if(anaY==null){const d=defaultAnalysisMonth();anaY=d.y;anaM=d.m;}
+  let r;try{r=runAnalysis(anaY,anaM);}catch(e){anaLast=null;
+    return head("Monatsanalyse",sub)+`<div class="scroll">${emptyMini("Die Analyse konnte nicht geladen werden. Öffne die App einmal mit Internet.")}</div>`;}
+  anaLast=r;
+  const t=today(),curIdx=t.getFullYear()*12+t.getMonth(),idx=anaY*12+anaM;
+  const first=KA().firstDataMonth(S);const firstIdx=first?first.y*12+first.m:curIdx;
+  const canPrev=idx>Math.min(firstIdx,curIdx),canNext=idx<curIdx;
+  const nav=`<div class="ana-nav">
+      <button type="button" class="ana-arrow" data-ana="-1" aria-label="Vorheriger Monat" ${canPrev?"":"disabled"}>${I.back}</button>
+      <div class="ana-month" aria-live="polite">${MONTHS[anaM]} ${anaY}${r.complete?"":` <small>bisher</small>`}</div>
+      <button type="button" class="ana-arrow" data-ana="1" aria-label="Nächster Monat" ${canNext?"":"disabled"}>${I.chevR}</button></div>`;
+  let body;
+  if(!r.enough){
+    body=`<div class="card ana-empty"><div class="ana-empty-ic">${I.chart}</div><p>${LANG==="en"
+      ?`Not enough data for this month yet: <b>${r.daysWithData} of ${r.minDays}</b> days tracked. The review fills up the longer you use Konseq.`
+      :`Für diesen Monat gibt es noch zu wenig Daten: <b>${r.daysWithData} von ${r.minDays}</b> Tagen erfasst. Die Analyse füllt sich, je länger du Konseq nutzt.`}</p></div>`;
+  }else{
+    const avg=r.avgScore==null?"–":Math.round(r.avgScore*100);
+    let delta="–",dcls="";if(r.avgScore!=null&&r.prevAvgScore!=null){const d=Math.round(r.avgScore*100)-Math.round(r.prevAvgScore*100);delta=(d>0?"+":"")+d;dcls=d>0?"up":d<0?"down":"";}
+    const stat=(v,l,c)=>`<div class="stat"><div class="v ${c||""}">${v}</div><div class="l">${l}</div></div>`;
+    const top=r.findings[0];
+    const list=items=>items.length?`<ul class="ana-list">${items.map(f=>anaItem(f,ANALYSIS_GATE&&f!==top)).join("")}</ul>`:`<p class="ana-none">Hier ist in diesem Monat nichts auffällig.</p>`;
+    body=`<div class="stat-row">${stat(avg,"Ø Score")}${stat(r.daysWithData,"Tage erfasst")}${stat(delta,"ggü. Vormonat",dcls)}</div>
+      <section class="ana-sec" aria-labelledby="ana-good"><h2 class="ana-h good" id="ana-good">Läuft gut</h2>${list(r.good)}</section>
+      <section class="ana-sec" aria-labelledby="ana-bad"><h2 class="ana-h bad" id="ana-bad">Ausbaufähig</h2>${list(r.bad)}</section>
+      ${ANALYSIS_GATE&&r.findings.length>1?`<p class="ana-upsell">Mit Premium siehst du alle Befunde.</p>`:""}
+      <div class="hint">Alle Befunde entstehen nach festen Regeln direkt auf deinem Gerät, nur aus deinen eigenen Daten.</div>`;
+  }
+  return head("Monatsanalyse",sub)+`<div class="scroll">${nav}${body}</div>`;
+}
+function bindAnalysis(){
+  app.querySelectorAll("[data-ana]").forEach(b=>b.addEventListener("click",()=>{if(b.disabled)return;
+    let idx=anaY*12+anaM+(+b.dataset.ana);anaY=Math.floor(idx/12);anaM=idx%12;render();}));
+  // Hinweis auf der Startseite gilt als gesehen, sobald der abgeschlossene Vormonat angezeigt wurde
+  const t=today(),p=prevMonthOf(t.getFullYear(),t.getMonth());
+  if(anaLast&&anaLast.enough&&anaLast.key===monthKeyOf(p.y,p.m)&&S.analysisSeen!==anaLast.key){S.analysisSeen=anaLast.key;save();}
+}
 
 // Wisch-Karussell im Hero: Position halten und Punkte aktualisieren
 function bindHero(){
